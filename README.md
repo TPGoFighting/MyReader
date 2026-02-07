@@ -1,16 +1,6 @@
-# flutter_application_1
+# MyReader 一个基于Flutter开发的小说阅读APP 
 
-A new Flutter project.
+## 核心功能 - 书架管理 - 小说分类浏览 - 沉浸式阅读（字体/背景自定义、翻页） - 本地阅读进度保存 
 
-## Getting Started
+## 技术栈 - Flutter 3.x - Provider（状态管理） - Dio（网络请求） - Hive（本地存储）
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
