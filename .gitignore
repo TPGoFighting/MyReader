@@ -1,0 +1,29 @@
+# Flutter/Dart 核心忽略
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+flutter_export_environment.sh
+
+# Android 忽略
+android/app/build/
+android/build/
+android/.gradle/
+local.properties
+
+# iOS 忽略
+ios/Pods/
+ios/.symlinks/
+ios/DerivedData/
+ios/build/
+ios/Runner/GeneratedPluginRegistrant.*
+
+# 其他无用文件
+*.log
+.DS_Store
+.idea/
+.vscode/!*.code-workspace
+*.iml
