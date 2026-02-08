@@ -3,15 +3,15 @@ import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 import 'core/hive_init.dart';
 import 'providers/reader_provider.dart';
+import 'providers/bookshelf_provider.dart'; // 新增：导入BookshelfProvider
 import 'screens/bookshelf/bookshelf_screen.dart';
 import 'screens/category/category_screen.dart';
 import 'screens/mine/mine_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await HiveInit.init(); // 初始化Hive
+  await HiveInit.init();
 
-  // 全局设置状态栏
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.white,
@@ -27,10 +27,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 全局状态管理
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ReaderProvider()),
+        ChangeNotifierProvider(create: (_) => BookshelfProvider()), // 现在能正确识别
       ],
       child: MaterialApp(
         title: '小说阅读APP',
@@ -51,7 +51,6 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
-
   final List<Widget> _pages = const [
     BookshelfScreen(),
     CategoryScreen(),

@@ -22,13 +22,15 @@ class NovelModelAdapter extends TypeAdapter<NovelModel> {
       author: fields[2] as String,
       cover: fields[3] as String,
       latestChapter: fields[4] as String,
+      category: fields[5] as String,
+      chapters: (fields[6] as List).cast<ChapterModel>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, NovelModel obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -38,7 +40,11 @@ class NovelModelAdapter extends TypeAdapter<NovelModel> {
       ..writeByte(3)
       ..write(obj.cover)
       ..writeByte(4)
-      ..write(obj.latestChapter);
+      ..write(obj.latestChapter)
+      ..writeByte(5)
+      ..write(obj.category)
+      ..writeByte(6)
+      ..write(obj.chapters);
   }
 
   @override
