@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
 import '../../providers/reader_provider.dart';
-import '../../models/novel_model.dart';
 
 class MineScreen extends StatefulWidget {
   const MineScreen({super.key});
@@ -41,14 +40,17 @@ class _MineScreenState extends State<MineScreen> {
         title: const Text('清除缓存'),
         content: const Text('确定清除所有章节缓存吗？'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
           TextButton(
             onPressed: () async {
               await _chapterCacheBox.clear();
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('缓存已清除')),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('缓存已清除')));
             },
             child: const Text('确定', style: TextStyle(color: Colors.red)),
           ),
@@ -113,7 +115,9 @@ class _MineScreenState extends State<MineScreen> {
             onTap: _clearCache,
           ),
           const Divider(height: 1),
+
           // 关于APP
+          
           ListTile(
             leading: const Icon(Icons.info),
             title: const Text('关于MyReader'),

@@ -24,26 +24,29 @@ class _CategoryScreenState extends State<CategoryScreen> {
     _filteredNovels = _allNovels;
   }
 
-  // 筛选小说
   void _filterNovels(String category) {
     setState(() {
       _selectedCategory = category;
       if (category == '全部') {
         _filteredNovels = _allNovels;
       } else {
-        _filteredNovels = _allNovels.where((novel) => novel.category == category).toList();
+        _filteredNovels = _allNovels
+            .where((novel) => novel.category == category)
+            .toList();
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    // 监听 BookshelfProvider 以便 UI 能够根据书架状态实时刷新
     final bookshelfProvider = Provider.of<BookshelfProvider>(context);
+
     return Scaffold(
       appBar: AppBar(title: const Text('小说分类')),
       body: Column(
         children: [
-          // 分类标签栏
+          // 1. 分类标签栏：这里只负责切换分类
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -52,10 +55,14 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: TextButton(
                     style: TextButton.styleFrom(
-                      backgroundColor: _selectedCategory == category ? Colors.blue : Colors.grey[200],
-                      foregroundColor: _selectedCategory == category ? Colors.white : Colors.black,
+                      backgroundColor: _selectedCategory == category
+                          ? Colors.blue
+                          : Colors.grey[200],
+                      foregroundColor: _selectedCategory == category
+                          ? Colors.white
+                          : Colors.black,
                     ),
-                    onPressed: () => _filterNovels(category),
+                    onPressed: () => _filterNovels(category), // 仅仅执行筛选
                     child: Text(category),
                   ),
                 );
@@ -63,14 +70,19 @@ class _CategoryScreenState extends State<CategoryScreen> {
             ),
           ),
           const Divider(height: 1),
-          // 小说列表
+
+          // 2. 小说列表：这里才是处理具体某本小说(novel)的地方
           Expanded(
             child: _filteredNovels.isEmpty
                 ? const Center(child: Text('暂无该分类小说～'))
                 : ListView.builder(
                     itemCount: _filteredNovels.length,
                     itemBuilder: (context, index) {
+                      // 在这里定义的 novel 才能被下面的组件使用
                       final novel = _filteredNovels[index];
+                      final bool isInBookshelf = bookshelfProvider
+                          .isInBookshelf(novel.id);
+
                       return ListTile(
                         leading: ClipRRect(
                           borderRadius: BorderRadius.circular(4),
@@ -79,42 +91,44 @@ class _CategoryScreenState extends State<CategoryScreen> {
                             width: 50,
                             height: 70,
                             fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Container(
+                                  width: 50,
+                                  color: Colors.grey,
+                                  child: Icon(Icons.book),
+                                ),
                           ),
                         ),
                         title: Text(novel.title),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('作者：${novel.author}'),
-                            Text('最新章节：${novel.latestChapter}'),
-                          ],
-                        ),
+                        subtitle: Text('作者：${novel.author}'),
                         trailing: TextButton(
-                          onPressed: () {
-                            bookshelfProvider.addNovel(novel);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('《${novel.title}》已添加到书架')),
-                            );
-                          },
+                          onPressed: isInBookshelf
+                              ? null // 如果已添加，禁用按钮
+                              : () {
+                                  bookshelfProvider.addNovel(novel);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('《${novel.title}》已加入书架'),
+                                    ),
+                                  );
+                                },
                           child: Text(
-                            bookshelfProvider.isInBookshelf(novel.id) ? '已添加' : '加入书架',
+                            isInBookshelf ? '已添加' : '加入书架',
                             style: TextStyle(
-                              color: bookshelfProvider.isInBookshelf(novel.id) ? Colors.grey : Colors.blue,
+                              color: isInBookshelf ? Colors.grey : Colors.blue,
                             ),
                           ),
                         ),
                         onTap: () {
-                          // 点击进入阅读页
-                          final firstChapter = novel.chapters.first;
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => ReaderScreen(
-                                novelId: novel.id,
-                                chapterId: firstChapter.chapterId,
-                                chapterTitle: firstChapter.chapterTitle,
-                                content: firstChapter.content,
                                 novel: novel,
+                                novelId: novel.id,
+                                chapterId: novel.chapters.isNotEmpty
+                                    ? novel.chapters[0].chapterId
+                                    : "1",
                               ),
                             ),
                           );

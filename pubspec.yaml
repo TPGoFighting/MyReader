@@ -39,6 +39,18 @@ dependencies:
   go_router: ^14.0.1        # 路由
   flutter_html: ^3.0.0-beta.2 # 内容解析
   shared_preferences: ^2.2.2 # 轻量配置存储
+  file_picker: ^8.1.7
+  path_provider: ^2.0.15
+  intl: ^0.18.0
+  path: ^1.8.3
+  charset_converter: ^2.1.1
+  epubx: ^4.0.0  # 正确的解析包名
+  html: ^0.15.4
+
+flutter:
+  # 必须确保这一行缩进正确 (缩进2个空格)
+  uses-material-design: true
+
 
 dev_dependencies:
   flutter_test:
@@ -46,3 +58,4 @@ dev_dependencies:
   flutter_lints: ^3.0.0
   hive_generator: ^2.0.1    # Hive模型生成
   build_runner: ^2.4.8      # 代码生成
+
