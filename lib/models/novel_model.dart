@@ -26,6 +26,12 @@ class NovelModel extends HiveObject {
   @HiveField(6)
   late List<ChapterModel> chapters; // 章节列表（解决chapters未定义）
 
+  @HiveField(7)
+  String? lastReadChapterId; // 最后阅读的章节ID
+
+  @HiveField(8)
+  int? lastReadProgress; // 最后阅读进度（章节索引）
+
   NovelModel({
     required this.id,
     required this.title,
@@ -34,6 +40,8 @@ class NovelModel extends HiveObject {
     required this.latestChapter,
     required this.category,
     required this.chapters,
+    this.lastReadChapterId,
+    this.lastReadProgress,
   });
 }
 
@@ -57,6 +65,37 @@ class ChapterModel extends HiveObject {
     required this.chapterId,
     required this.chapterTitle,
     required this.content,
+  });
+}
+
+// 书签模型
+@HiveType(typeId: 2)
+class BookmarkModel extends HiveObject {
+  @HiveField(0)
+  late String novelId; // 所属小说ID
+
+  @HiveField(1)
+  late String chapterId; // 章节ID
+
+  @HiveField(2)
+  late String chapterTitle; // 章节标题
+
+  @HiveField(3)
+  late int pageIndex; // 页面索引
+
+  @HiveField(4)
+  late String content; // 书签内容预览
+
+  @HiveField(5)
+  late int timestamp; // 创建时间戳
+
+  BookmarkModel({
+    required this.novelId,
+    required this.chapterId,
+    required this.chapterTitle,
+    required this.pageIndex,
+    required this.content,
+    required this.timestamp,
   });
 }
 

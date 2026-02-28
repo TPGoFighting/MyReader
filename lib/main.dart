@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 import 'core/hive_init.dart';
 import 'providers/reader_provider.dart';
-import 'providers/bookshelf_provider.dart'; 
+import 'providers/bookshelf_provider.dart';
+import 'providers/theme_provider.dart';
+import 'providers/bookmark_provider.dart';
 import 'screens/bookshelf/bookshelf_screen.dart';
 import 'screens/category/category_screen.dart';
 import 'screens/mine/mine_screen.dart';
@@ -33,37 +35,20 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        // 4. 注意这里：BookshelfProvider 启动时立即调用 initBookshelf()
-        // 这样可以解决你“无法加入书架”或书架初始显示为空的问题
         ChangeNotifierProvider(create: (_) => BookshelfProvider()..initBookshelf()),
         ChangeNotifierProvider(create: (_) => ReaderProvider()..initConfig()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()..initTheme()),
+        ChangeNotifierProvider(create: (_) => BookmarkProvider()..initBookmarks()),
       ],
-      child: MaterialApp(
-        title: '小说阅读APP',
-        theme: ThemeData(
-          useMaterial3: true,
-          colorSchemeSeed: Colors.blueGrey,
-          // 5. 优化 AppBar 全局配置
-          appBarTheme: const AppBarTheme(
-            centerTitle: true,
-            elevation: 0,
-            backgroundColor: Colors.white, // 给书架和分类页一个清晰的底色
-            surfaceTintColor: Colors.transparent,
-            titleTextStyle: TextStyle(
-              color: Colors.black, 
-              fontSize: 18, 
-              fontWeight: FontWeight.bold
-            ),
-          ),
-          // 6. 统一底部导航栏风格
-          bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-            selectedItemColor: Colors.blueGrey,
-            unselectedItemColor: Colors.grey,
-            type: BottomNavigationBarType.fixed,
-          ),
-        ),
-        home: const MainScreen(),
-        debugShowCheckedModeBanner: false,
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            title: '小说阅读APP',
+            theme: themeProvider.themeData,
+            home: const MainScreen(),
+            debugShowCheckedModeBanner: false,
+          );
+        },
       ),
     );
   }

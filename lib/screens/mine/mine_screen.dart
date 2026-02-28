@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
 import '../../providers/reader_provider.dart';
+import '../../providers/theme_provider.dart';
 
 class MineScreen extends StatefulWidget {
   const MineScreen({super.key});
@@ -47,10 +48,12 @@ class _MineScreenState extends State<MineScreen> {
           TextButton(
             onPressed: () async {
               await _chapterCacheBox.clear();
-              Navigator.pop(context);
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('缓存已清除')));
+              if (mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('缓存已清除')),
+                );
+              }
             },
             child: const Text('确定', style: TextStyle(color: Colors.red)),
           ),
@@ -62,10 +65,25 @@ class _MineScreenState extends State<MineScreen> {
   @override
   Widget build(BuildContext context) {
     final readerProvider = Provider.of<ReaderProvider>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
     return Scaffold(
       appBar: AppBar(title: const Text('我的')),
       body: ListView(
         children: [
+          // 夜间模式开关
+          SwitchListTile(
+            secondary: Icon(
+              themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+            ),
+            title: const Text('夜间模式'),
+            subtitle: Text(themeProvider.isDarkMode ? '已开启' : '已关闭'),
+            value: themeProvider.isDarkMode,
+            onChanged: (value) {
+              themeProvider.toggleTheme();
+            },
+          ),
+          const Divider(height: 1),
           // 阅读进度
           ListTile(
             leading: const Icon(Icons.history),

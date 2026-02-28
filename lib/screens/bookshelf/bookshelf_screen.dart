@@ -8,6 +8,7 @@ import 'package:epubx/epubx.dart' as epub;
 import 'package:html/parser.dart' show parse;
 
 import '../../providers/bookshelf_provider.dart';
+import '../../providers/reader_provider.dart';
 import '../../models/novel_model.dart';
 import '../reader/reader_screen.dart';
 
@@ -153,11 +154,9 @@ class _BookshelfScreenState extends State<BookshelfScreen> {
             ? TextField(
                 controller: _searchController,
                 autofocus: true,
-                style: const TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
-                  hintText: '搜索书架...',
+                  hintText: '搜索书名或作者...',
                   border: InputBorder.none,
-                  hintStyle: TextStyle(color: Colors.white70),
                 ),
                 onChanged: (value) => setState(() {}),
               )
@@ -178,9 +177,13 @@ class _BookshelfScreenState extends State<BookshelfScreen> {
         builder: (context, provider, child) {
           final displayList = provider.novelList
               .where(
-                (novel) => novel.title.toLowerCase().contains(
-                  _searchController.text.toLowerCase(),
-                ),
+                (novel) =>
+                  novel.title.toLowerCase().contains(
+                    _searchController.text.toLowerCase(),
+                  ) ||
+                  novel.author.toLowerCase().contains(
+                    _searchController.text.toLowerCase(),
+                  ),
               )
               .toList();
 
@@ -217,6 +220,10 @@ class _BookshelfScreenState extends State<BookshelfScreen> {
     BookshelfProvider provider,
     NovelModel novel,
   ) {
+    // 获取阅读进度
+    final readerProvider = Provider.of<ReaderProvider>(context, listen: false);
+    final progress = readerProvider.getReadProgressPercent(novel.id, novel.chapters.length);
+
     return GestureDetector(
       onLongPress: () => _showDeleteDialog(context, provider, novel),
       onTap: () {
@@ -237,21 +244,50 @@ class _BookshelfScreenState extends State<BookshelfScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                novel.cover,
-                fit: BoxFit.cover,
-                errorBuilder: (c, e, s) => Container(
-                  color: Colors.grey[300],
-                  child: Center(
-                    child: Text(
-                      novel.category,
+            child: Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    novel.cover,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    errorBuilder: (c, e, s) => Container(
+                      color: Colors.grey[300],
+                      child: Center(
+                        child: Text(
+                          novel.category,
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
               ),
+            ),
+                // 阅读进度指示器
+                if (progress > 0)
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.black26,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                      child: FractionallySizedBox(
+                        alignment: Alignment.centerLeft,
+                        widthFactor: progress / 100,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.blue,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
           const SizedBox(height: 5),
@@ -261,6 +297,11 @@ class _BookshelfScreenState extends State<BookshelfScreen> {
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
           ),
+          if (progress > 0)
+            Text(
+              '已读 ${progress.toStringAsFixed(0)}%',
+              style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+            ),
         ],
       ),
     );

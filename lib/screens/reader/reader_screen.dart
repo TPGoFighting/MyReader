@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../providers/reader_provider.dart';
+import '../../providers/bookmark_provider.dart';
 import '../../models/novel_model.dart';
 
 class ReaderScreen extends StatefulWidget {
@@ -184,9 +185,18 @@ class _ReaderScreenState extends State<ReaderScreen>
                         itemCount: _pagesData.length,
                         onPageChanged: (index) {
                           setState(() => _currentIndex = index);
+                          // 计算当前章节索引
+                          int chapterIndex = 0;
+                          for (int i = 0; i < widget.novel.chapters.length; i++) {
+                            if (_pagesData[index]['chapterTitle'] == widget.novel.chapters[i].chapterTitle) {
+                              chapterIndex = i;
+                              break;
+                            }
+                          }
                           provider.saveReadProgress(
                             widget.novelId,
                             "page_$index",
+                            chapterIndex,
                           );
                         },
                         itemBuilder: (context, index) =>
@@ -303,6 +313,12 @@ class _ReaderScreenState extends State<ReaderScreen>
           widget.novel.title,
           style: const TextStyle(color: Colors.white, fontSize: 16),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bookmark_border, color: Colors.white),
+            onPressed: () => _showBookmarkDialog(),
+          ),
+        ],
       ),
     );
   }
@@ -350,8 +366,121 @@ class _ReaderScreenState extends State<ReaderScreen>
     );
   }
 
+  // 书签对话框
+  void _showBookmarkDialog() {
+    final bookmarkProvider = Provider.of<BookmarkProvider>(context, listen: false);
+    final novelBookmarks = bookmarkProvider.getNovelBookmarks(widget.novelId);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('书签管理'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () {
+                  _addBookmark();
+                  Navigator.pop(context);
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('添加当前位置为书签'),
+              ),
+              const SizedBox(height: 10),
+              if (novelBookmarks.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Text('暂无书签'),
+                )
+              else
+                Flexible(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: novelBookmarks.length,
+                    itemBuilder: (context, index) {
+                      final bookmark = novelBookmarks[index];
+                      return ListTile(
+                        leading: const Icon(Icons.bookmark),
+                        title: Text(bookmark.chapterTitle),
+                        subtitle: Text(
+                          bookmark.content.length > 30
+                              ? '${bookmark.content.substring(0, 30)}...'
+                              : bookmark.content,
+                        ),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () {
+                            bookmarkProvider.removeBookmark(index);
+                            Navigator.pop(context);
+                          },
+                        ),
+                        onTap: () {
+                          _jumpToBookmark(bookmark);
+                          Navigator.pop(context);
+                        },
+                      );
+                    },
+                  ),
+                ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('关闭'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 添加书签
+  void _addBookmark() {
+    final bookmarkProvider = Provider.of<BookmarkProvider>(context, listen: false);
+    final currentPage = _pagesData[_currentIndex];
+
+    if (bookmarkProvider.hasBookmarkAt(
+      widget.novelId,
+      currentPage['chapterTitle'],
+      _currentIndex,
+    )) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('该位置已存在书签')),
+      );
+      return;
+    }
+
+    final bookmark = BookmarkModel(
+      novelId: widget.novelId,
+      chapterId: currentPage['chapterTitle'],
+      chapterTitle: currentPage['chapterTitle'],
+      pageIndex: _currentIndex,
+      content: currentPage['content'].substring(0, 50),
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+    );
+
+    bookmarkProvider.addBookmark(bookmark);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('书签已添加')),
+    );
+  }
+
+  // 跳转到书签
+  void _jumpToBookmark(BookmarkModel bookmark) {
+    if (bookmark.pageIndex < _pagesData.length) {
+      _pageController?.jumpToPage(bookmark.pageIndex);
+      setState(() {
+        _currentIndex = bookmark.pageIndex;
+        _showMenu = false;
+      });
+    }
+  }
+
   Widget _colorDot(ReaderProvider provider, Color color, String name) {
-    bool isSel = provider.bgColor.value == color.value;
+    bool isSel = provider.bgColor == color;
     return GestureDetector(
       onTap: () => provider.setBgColor(color),
       child: Column(

@@ -24,13 +24,15 @@ class NovelModelAdapter extends TypeAdapter<NovelModel> {
       latestChapter: fields[4] as String,
       category: fields[5] as String,
       chapters: (fields[6] as List).cast<ChapterModel>(),
+      lastReadChapterId: fields[7] as String?,
+      lastReadProgress: fields[8] as int?,
     );
   }
 
   @override
   void write(BinaryWriter writer, NovelModel obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -44,7 +46,11 @@ class NovelModelAdapter extends TypeAdapter<NovelModel> {
       ..writeByte(5)
       ..write(obj.category)
       ..writeByte(6)
-      ..write(obj.chapters);
+      ..write(obj.chapters)
+      ..writeByte(7)
+      ..write(obj.lastReadChapterId)
+      ..writeByte(8)
+      ..write(obj.lastReadProgress);
   }
 
   @override
@@ -97,6 +103,55 @@ class ChapterModelAdapter extends TypeAdapter<ChapterModel> {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is ChapterModelAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class BookmarkModelAdapter extends TypeAdapter<BookmarkModel> {
+  @override
+  final int typeId = 2;
+
+  @override
+  BookmarkModel read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return BookmarkModel(
+      novelId: fields[0] as String,
+      chapterId: fields[1] as String,
+      chapterTitle: fields[2] as String,
+      pageIndex: fields[3] as int,
+      content: fields[4] as String,
+      timestamp: fields[5] as int,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, BookmarkModel obj) {
+    writer
+      ..writeByte(6)
+      ..writeByte(0)
+      ..write(obj.novelId)
+      ..writeByte(1)
+      ..write(obj.chapterId)
+      ..writeByte(2)
+      ..write(obj.chapterTitle)
+      ..writeByte(3)
+      ..write(obj.pageIndex)
+      ..writeByte(4)
+      ..write(obj.content)
+      ..writeByte(5)
+      ..write(obj.timestamp);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BookmarkModelAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
